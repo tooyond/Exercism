@@ -1,0 +1,53 @@
+#lang racket
+
+(provide encode decode)
+
+(define (encode m)
+  (define downcase (string-downcase m))
+  (define strlength (string-length downcase))
+  (define-values (carr carr2) (for/fold ([carr '()] [carr2 '()])
+            ([i (in-range 0 strlength)])
+    (define c (string-ref downcase i))
+                                (define asc (char->integer c))
+    (define x (- 122 asc))
+                  (begin 
+    (set! carr (if (and (> x -1) (< x 26))
+        (cons (integer->char (+ 97 x)) carr )
+        carr))
+    (set! carr (if (and (> asc 47) (< asc 58))
+        (cons c carr )
+        carr))
+    (set! carr2 (if (and (> x -1) (< x 26))
+        (cons (integer->char (+ 97 x)) carr2 )
+        carr2))
+    (set! carr2 (if (and (> asc 47) (< asc 58))
+        (cons c carr2 )
+        carr2))
+    
+      (set! carr2 (if (and (< i (- strlength 2))
+                           (or  (and (> x -1) (< x 26)) (and (> asc 47) (< asc 58)))
+                           (= (remainder (length carr) 5) 0) )
+        (cons #\ carr2)
+        carr2))
+      )
+                  (values carr carr2)
+  ))
+  (list->string (reverse carr2))
+    
+)
+
+(define (decode m)
+  (define m2 (string-replace m " " ""))
+  (define carr (for/fold ([carr '()])
+            ([i (in-range 0 (string-length m2))])
+    (define c (string-ref m2 i))
+                                (define asc (char->integer c))
+    (define x (- 122 asc))
+                 
+    (if (and (> asc 47) (< asc 58))
+        (cons c carr )
+        (cons (integer->char (+ 97 x)) carr )
+        )
+        
+                 ))
+  (list->string (reverse carr)))
